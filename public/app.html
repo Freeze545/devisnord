@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0B1F3A" />
+  <title>App — DevisNord</title>
+  <link rel="icon" href="/assets/logo.jpg" />
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body class="app-shell">
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="/"><img src="/assets/logo.jpg" alt="" /><span>DevisNord</span></a>
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+        <span class="status-pill demo" id="statusPill">…</span>
+        <span id="userEmail" style="font-size:0.8rem;color:var(--muted)"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="container">
+      <!-- CREATE -->
+      <section class="panel active" data-panel="create">
+        <h2 style="margin-top:0;color:var(--navy)">Nouveau devis</h2>
+        <p style="color:var(--muted);margin-top:0">Dictez, tapez ou joignez une photo — on s’occupe de la structure et des taxes.</p>
+        <div id="createAlert"></div>
+
+        <div class="field">
+          <label for="notes">Notes du chantier</label>
+          <textarea id="notes" placeholder="Ex. : Déneigement entrée 2 voitures + trottoir, 3 fois par semaine, client à Sainte-Foy…"></textarea>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="btn btn-secondary" id="micBtn">🎤 Dicter</button>
+          <button type="button" class="btn btn-secondary" id="photoBtn">📷 Photo</button>
+          <input type="file" id="photoInput" accept="image/*" capture="environment" class="hidden" />
+        </div>
+        <p id="micHint" class="chip hidden"><span class="rec-dot"></span> Écoute en cours (fr-CA)…</p>
+        <img id="photoPreview" class="photo-preview" alt="Aperçu photo" />
+
+        <div class="field">
+          <label for="imageDesc">Description photo (optionnel)</label>
+          <input id="imageDesc" type="text" placeholder="Ex. : entrée asphaltée, ~6 m de large" />
+        </div>
+
+        <div class="field">
+          <label for="clientName">Client</label>
+          <input id="clientName" type="text" placeholder="Nom du client" />
+        </div>
+        <div class="field">
+          <label for="clientAddress">Adresse client</label>
+          <input id="clientAddress" type="text" placeholder="Adresse" />
+        </div>
+        <div class="field">
+          <label for="clientPhone">Téléphone client</label>
+          <input id="clientPhone" type="tel" placeholder="418-…" />
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block" id="generateBtn">✨ Générer le devis</button>
+      </section>
+
+      <!-- EDIT -->
+      <section class="panel" data-panel="edit">
+        <h2 style="margin-top:0;color:var(--navy)">Modifier le devis</h2>
+        <div id="editAlert"></div>
+
+        <div class="field"><label>Titre</label><input id="edTitle" type="text" /></div>
+        <div class="field"><label>Client</label><input id="edClientName" type="text" /></div>
+        <div class="field"><label>Adresse</label><input id="edClientAddress" type="text" /></div>
+        <div class="field"><label>Téléphone</label><input id="edClientPhone" type="tel" /></div>
+
+        <h3 style="color:var(--navy);font-size:1rem">Lignes</h3>
+        <div id="itemsBox"></div>
+        <button type="button" class="btn btn-ghost" id="addItemBtn">+ Ajouter une ligne</button>
+
+        <div class="totals">
+          <div class="line"><span>Sous-total</span><span id="totSub">0,00 $</span></div>
+          <div class="line"><span>TPS (5 %)</span><span id="totTps">0,00 $</span></div>
+          <div class="line"><span>TVQ (9,975 %)</span><span id="totTvq">0,00 $</span></div>
+          <div class="line grand"><span>Total CAD</span><span id="totGrand">0,00 $</span></div>
+        </div>
+
+        <div class="field" style="margin-top:1rem"><label>Notes</label><textarea id="edNotes"></textarea></div>
+        <div class="field"><label>Conditions</label><textarea id="edConditions"></textarea></div>
+
+        <div class="toolbar" style="margin-top:1rem">
+          <button type="button" class="btn btn-primary" id="saveDevisBtn">Enregistrer</button>
+          <button type="button" class="btn btn-secondary" id="pdfBtn">📄 PDF</button>
+          <button type="button" class="btn btn-ghost" id="shareBtn">Partager</button>
+        </div>
+      </section>
+
+      <!-- HISTORY -->
+      <section class="panel" data-panel="history">
+        <h2 style="margin-top:0;color:var(--navy)">Historique</h2>
+        <div id="historyList"></div>
+      </section>
+
+      <!-- PROFILE -->
+      <section class="panel" data-panel="profile">
+        <h2 style="margin-top:0;color:var(--navy)">Entreprise</h2>
+        <p class="chip" id="planBadge">Forfait…</p>
+        <div id="profileAlert"></div>
+        <div class="field"><label>Nom</label><input id="coName" type="text" /></div>
+        <div class="field"><label>Adresse</label><input id="coAddress" type="text" /></div>
+        <div class="field"><label>Téléphone</label><input id="coPhone" type="tel" /></div>
+        <div class="field"><label>Courriel</label><input id="coEmail" type="email" /></div>
+        <div class="field"><label>NEQ</label><input id="coNeq" type="text" /></div>
+        <div class="field"><label>N° TPS</label><input id="coTps" type="text" /></div>
+        <div class="field"><label>N° TVQ</label><input id="coTvq" type="text" /></div>
+        <button type="button" class="btn btn-primary btn-block" id="saveProfileBtn">Enregistrer le profil</button>
+        <a class="btn btn-secondary btn-block" href="/pricing.html" style="margin-top:0.6rem">Voir les forfaits</a>
+        <button type="button" class="btn btn-ghost btn-block" id="logoutBtn" style="margin-top:0.6rem">Déconnexion</button>
+      </section>
+    </div>
+  </main>
+
+  <nav class="tabbar" aria-label="Navigation">
+    <button type="button" class="active" data-tab="create"><span class="emoji">➕</span>Créer</button>
+    <button type="button" data-tab="edit"><span class="emoji">✏️</span>Devis</button>
+    <button type="button" data-tab="history"><span class="emoji">📋</span>Historique</button>
+    <button type="button" data-tab="profile"><span class="emoji">🏢</span>Profil</button>
+  </nav>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

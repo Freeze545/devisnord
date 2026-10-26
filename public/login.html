@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Connexion — DevisNord</title>
+  <link rel="icon" href="/assets/logo.jpg" />
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="/"><img src="/assets/logo.jpg" alt="DevisNord" /><span>DevisNord</span></a>
+      <a href="/pricing.html">Tarifs</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="auth-box">
+      <div style="text-align:center;margin-bottom:0.5rem">
+        <img src="/assets/logo.jpg" alt="" width="56" height="56" style="border-radius:14px" />
+      </div>
+      <h1 style="text-align:center">Bienvenue</h1>
+      <p style="text-align:center;color:var(--muted);margin-top:0">Créez vos devis en français, sur mobile.</p>
+
+      <div class="tabs-auth">
+        <button class="btn btn-primary" type="button" id="tabLogin">Connexion</button>
+        <button class="btn btn-ghost" type="button" id="tabReg">Inscription</button>
+      </div>
+
+      <div id="alert"></div>
+
+      <form id="formLogin">
+        <div class="field">
+          <label for="email">Courriel</label>
+          <input id="email" name="email" type="email" autocomplete="email" required placeholder="vous@entreprise.ca" />
+        </div>
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required minlength="6" />
+        </div>
+        <div class="field hidden" id="companyField">
+          <label for="company">Nom de l’entreprise</label>
+          <input id="company" name="company" type="text" placeholder="Ex. Déneigement Nordet" />
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" id="submitBtn">Se connecter</button>
+      </form>
+
+      <p style="font-size:0.8rem;color:var(--muted);margin-top:1rem">
+        Auth MVP : courriel + mot de passe (stockage fichier). Pas de réinitialisation par courriel pour l’instant.
+        Sur l’hébergement gratuit, les données peuvent être réinitialisées au redéploiement.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    let mode = 'login';
+    const tabLogin = document.getElementById('tabLogin');
+    const tabReg = document.getElementById('tabReg');
+    const companyField = document.getElementById('companyField');
+    const submitBtn = document.getElementById('submitBtn');
+    const alertEl = document.getElementById('alert');
+
+    function setMode(m) {
+      mode = m;
+      companyField.classList.toggle('hidden', m !== 'register');
+      submitBtn.textContent = m === 'login' ? 'Se connecter' : 'Créer mon compte';
+      tabLogin.className = 'btn ' + (m === 'login' ? 'btn-primary' : 'btn-ghost');
+      tabReg.className = 'btn ' + (m === 'register' ? 'btn-primary' : 'btn-ghost');
+      document.getElementById('password').autocomplete = m === 'login' ? 'current-password' : 'new-password';
+    }
+    tabLogin.onclick = () => setMode('login');
+    tabReg.onclick = () => setMode('register');
+
+    // already logged in?
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.user) location.href = '/app.html'; })
+      .catch(() => {});
+
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      alertEl.innerHTML = '';
+      submitBtn.disabled = true;
+      const body = {
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value,
+        companyName: document.getElementById('company').value.trim(),
+      };
+      try {
+        const r = await fetch(mode === 'login' ? '/api/auth/login' : '/api/auth/register', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await r.json();
+        if (!r.ok) {
+          alertEl.innerHTML = `<div class="alert alert-err">${data.error || 'Erreur'}</div>`;
+        } else {
+          location.href = '/app.html';
+        }
+      } catch {
+        alertEl.innerHTML = '<div class="alert alert-err">Réseau indisponible.</div>';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

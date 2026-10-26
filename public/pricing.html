@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Tarifs — DevisNord</title>
+  <link rel="icon" href="/assets/logo.jpg" />
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="/"><img src="/assets/logo.jpg" alt="DevisNord" /><span>DevisNord</span></a>
+      <nav class="nav-links">
+        <a href="/">Accueil</a>
+        <a class="btn btn-primary" href="/login.html">Connexion</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      <h2>Forfaits DevisNord</h2>
+      <p class="subtitle">Tous les prix en CAD. Stripe Checkout en préparation — aucun débit sans votre compte Stripe configuré.</p>
+      <div id="msg"></div>
+      <div class="price-grid">
+        <div class="price-card">
+          <h3>Gratuit</h3>
+          <div class="amount">0&nbsp;$ <small>/mois</small></div>
+          <ul>
+            <li>3 devis par mois</li>
+            <li>IA devis + PDF</li>
+            <li>TPS 5 % + TVQ 9,975 %</li>
+          </ul>
+          <a class="btn btn-ghost btn-block" href="/login.html">Commencer</a>
+        </div>
+        <div class="price-card featured">
+          <h3>Pro</h3>
+          <div class="amount">29&nbsp;$ <small>/mois</small></div>
+          <ul>
+            <li>Devis illimités</li>
+            <li>Historique & édition</li>
+            <li>Idéal solo terrain</li>
+          </ul>
+          <button class="btn btn-primary btn-block" data-plan="pro" type="button">Choisir Pro</button>
+        </div>
+        <div class="price-card">
+          <h3>Business</h3>
+          <div class="amount">79&nbsp;$ <small>/mois</small></div>
+          <ul>
+            <li>Tout Pro</li>
+            <li>Usage intensif</li>
+            <li>Évolutif équipe</li>
+          </ul>
+          <button class="btn btn-secondary btn-block" data-plan="business" type="button">Choisir Business</button>
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top:1.5rem">
+        <strong>Bientôt / mode test :</strong> branchez <code>STRIPE_SECRET_KEY</code>, <code>STRIPE_PRICE_PRO</code> et <code>STRIPE_PRICE_BUSINESS</code> sur Render.
+        Sans ces clés, le bouton affiche les instructions — aucun paiement n’est pris.
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container foot">
+      <span>© DevisNord</span>
+      <a href="/app.html">Ouvrir l’app</a>
+    </div>
+  </footer>
+  <script>
+    const msg = document.getElementById('msg');
+    document.querySelectorAll('[data-plan]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        msg.innerHTML = '<div class="alert alert-info">Vérification…</div>';
+        try {
+          const r = await fetch('/api/stripe/checkout', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plan: btn.dataset.plan }),
+          });
+          if (r.status === 401) {
+            msg.innerHTML = '<div class="alert alert-warn">Connectez-vous d’abord pour souscrire. <a href="/login.html">Connexion</a></div>';
+            return;
+          }
+          const data = await r.json();
+          if (data.url) {
+            location.href = data.url;
+            return;
+          }
+          const steps = (data.instructions || []).map((s) => `<li>${s}</li>`).join('');
+          msg.innerHTML = `<div class="alert alert-info"><strong>${data.message || 'Bientôt disponible'}</strong><ol>${steps}</ol></div>`;
+        } catch (e) {
+          msg.innerHTML = '<div class="alert alert-err">Erreur réseau.</div>';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
